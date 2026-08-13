@@ -1,0 +1,21 @@
+{
+  "name": "tee-time-watcher",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Discord bot that watches golf course booking sites for last-minute tee time openings",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "deploy-commands": "node src/deploy-commands.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3"
+  }
+}
