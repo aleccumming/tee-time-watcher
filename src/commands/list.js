@@ -14,12 +14,12 @@ export async function execute(interaction) {
   }
 
   const lines = watches.map((w) => {
-    const site = SITES[w.site];
-    const scope = w.course_id ? site.courses[w.course_id] : `all courses at ${site.label}`;
+    const siteLabel = w.site === 'all' ? 'Vancouver & Burnaby' : SITES[w.site].label;
     const window = [w.time_min != null && `after ${w.time_min}:00`, w.time_max != null && `before ${w.time_max + 1}:00`]
       .filter(Boolean)
       .join(', ');
-    return `#${w.id} — ${scope} on ${w.date}${window ? ` (${window})` : ''}`;
+    const dateRange = w.date_end ? `${w.date} through ${w.date_end}` : w.date;
+    return `#${w.id} — ${siteLabel} on ${dateRange}${window ? ` (${window})` : ''}`;
   });
 
   await interaction.reply({ content: lines.join('\n'), ephemeral: true });

@@ -20,16 +20,3 @@ export const SITES = {
   },
 };
 
-export function findCourse(siteKey, courseNameOrId) {
-  const site = SITES[siteKey];
-  if (!site) return null;
-  const idMatch = Number(courseNameOrId);
-  if (Number.isInteger(idMatch) && site.courses[idMatch]) {
-    return { id: idMatch, name: site.courses[idMatch] };
-  }
-  const lower = String(courseNameOrId).toLowerCase();
-  for (const [id, name] of Object.entries(site.courses)) {
-    if (name.toLowerCase().includes(lower)) return { id: Number(id), name };
-  }
-  return null;
-}

@@ -53,10 +53,12 @@ npm start
 
 ## Usage
 
-- `/watch site:vancouver date:tomorrow before:7pm` — watch all Vancouver courses
-  for tomorrow, notify on anything before 7pm.
-- `/watch site:burnaby course:riverway date:2026-08-20 after:6am` — watch a
-  specific course/date/time window.
+- `/watch date:tomorrow before:7pm` — watch every course at both Vancouver and
+  Burnaby for tomorrow, notify on anything before 7pm. (`site` is optional and
+  defaults to both — pass `site:vancouver` or `site:burnaby` to narrow it.)
+- `/watch date:tomorrow until:2026-08-17 before:6:45pm` — watch every day from
+  tomorrow through Aug 17, across both sites, for anything before 6:45pm —
+  e.g. when you don't have a set date and just want the next opening this week.
 - `/list` — see your active watches and their ids.
 - `/unwatch id:3` — stop a watch.
 

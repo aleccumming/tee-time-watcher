@@ -25,6 +25,18 @@ export function dateKeyToDate(dateKey) {
   return new Date(y, m - 1, d);
 }
 
+/** All date keys from startKey to endKey, inclusive. */
+export function dateKeyRange(startKey, endKey) {
+  const keys = [];
+  const cursor = dateKeyToDate(startKey);
+  const end = dateKeyToDate(endKey);
+  while (cursor <= end) {
+    keys.push(toDateKey(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return keys;
+}
+
 /** Parse a loose time string ("7pm", "7:30am", "19:00", "19") into an integer hour 0-23. */
 export function parseHour(input) {
   const s = input.trim().toLowerCase().replace(/\s+/g, '');

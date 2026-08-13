@@ -6,15 +6,30 @@ Discord channel/DM when one appears matching a saved watch.
 
 ## Core flow
 
-1. User runs `/watch course:<course> date:<date> before:<time>` in Discord.
+1. User runs `/watch date:<date> before:<time>` in Discord. There's no course
+   filter — a watch always covers every course at whichever site(s) it targets.
+   `site` is optional and defaults to **both** Vancouver and Burnaby; pass
+   `site:vancouver` or `site:burnaby` to narrow to one.
 2. The watch is stored in SQLite.
-3. A cron job polls the relevant course's tee-sheet API every few minutes for each
+3. A cron job polls the relevant site(s)' tee-sheet API every few minutes for each
    active watch, and diffs the result against the last-seen slot set for that watch.
 4. Newly-appeared slots matching the filter → Discord notification with time, price,
    and a link to the booking page. The user books manually (no auto-checkout —
    payment info / bot detection / cancellation-policy risk).
 5. The watch auto-deactivates after that first notification — one ping and done.
    The user re-runs `/watch` if they want to keep looking after that.
+
+A watch can span multiple days via the optional `until` param (date through
+date_end, inclusive) — the poller searches each day separately per cycle (the
+CPS API takes one `searchDate` at a time), and a match on *any* day (and, if
+`site` wasn't narrowed, *any* site) triggers one notification listing every
+match and stops the whole watch. Useful for "find me an opening sometime in
+the next N days" instead of a fixed single date/site.
+
+A multi-site watch (`site: 'all'` in the DB) loops over both sites per poll,
+per date. A failure on one site (e.g. a transient Cloudflare challenge) only
+skips that site for the rest of the cycle — the other site still gets
+searched and can still trigger a notification.
 
 ## Stack decisions (already made, don't re-litigate)
 

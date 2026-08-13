@@ -25,12 +25,26 @@ db.exec(`
   );
 `);
 
-export function createWatch({ userId, channelId, site, courseId, date, timeMin, timeMax }) {
+// date_end was added after the initial schema — migrate existing DBs in place.
+const watchColumns = db.prepare('PRAGMA table_info(watches)').all().map((c) => c.name);
+if (!watchColumns.includes('date_end')) {
+  db.exec('ALTER TABLE watches ADD COLUMN date_end TEXT');
+}
+
+export function createWatch({ userId, channelId, site, date, dateEnd, timeMin, timeMax }) {
   const stmt = db.prepare(`
-    INSERT INTO watches (discord_user_id, discord_channel_id, site, course_id, date, time_min, time_max)
-    VALUES (@userId, @channelId, @site, @courseId, @date, @timeMin, @timeMax)
+    INSERT INTO watches (discord_user_id, discord_channel_id, site, date, date_end, time_min, time_max)
+    VALUES (@userId, @channelId, @site, @date, @dateEnd, @timeMin, @timeMax)
   `);
-  const info = stmt.run({ userId, channelId, site, courseId: courseId ?? null, date, timeMin: timeMin ?? null, timeMax: timeMax ?? null });
+  const info = stmt.run({
+    userId,
+    channelId,
+    site,
+    date,
+    dateEnd: dateEnd ?? null,
+    timeMin: timeMin ?? null,
+    timeMax: timeMax ?? null,
+  });
   return info.lastInsertRowid;
 }
 
