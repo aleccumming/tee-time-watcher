@@ -61,7 +61,9 @@ npm start
 - `/unwatch id:3` — stop a watch.
 
 When a new slot opens (or is already open) matching your watch, the bot posts in
-the channel where you ran `/watch` and pings you.
+the channel where you ran `/watch` and pings you — then automatically stops that
+watch (one notification and done). Run `/watch` again if you want to keep
+looking after that.
 
 ## Notes
 

@@ -13,6 +13,8 @@ Discord channel/DM when one appears matching a saved watch.
 4. Newly-appeared slots matching the filter → Discord notification with time, price,
    and a link to the booking page. The user books manually (no auto-checkout —
    payment info / bot detection / cancellation-policy risk).
+5. The watch auto-deactivates after that first notification — one ping and done.
+   The user re-runs `/watch` if they want to keep looking after that.
 
 ## Stack decisions (already made, don't re-litigate)
 
@@ -152,9 +154,19 @@ Both flows were tested end-to-end against live data and returned real available
 tee times for both sites (Langara/McCleery for Vancouver, Riverway for Burnaby).
 If either flow starts failing, the first things to check: has the CPS build
 version changed (bundle filenames/hashes will differ), has the platform added
-Cloudflare bot-challenge enforcement on these specific endpoints (it wasn't
-enforced on the API calls as of this testing, only briefly seen once on
-`Home/Configuration` before subsequent requests succeeded normally).
+Cloudflare bot-challenge enforcement on these specific endpoints.
+
+**Update (2026-08-13, later same day):** hit exactly that Cloudflare issue in
+practice — requests started reliably getting a 403 "Just a moment..." challenge
+page. Root-caused it: Cloudflare is fingerprinting Node's TLS stack, not the
+IP or request rate. Confirmed by interleaving requests to `Home/Configuration`
+from the same machine/IP/User-Agent: `curl` passed consistently, while both
+Node's `fetch` (undici) *and* the built-in `https` module failed almost every
+time. The fix — [src/adapters/cps.js](src/adapters/cps.js) shells out to `curl`
+(via `child_process.execFile`) for the actual HTTP requests instead of using
+Node's native HTTP stack. Not a bypass of anything — just avoiding a client
+Cloudflare happens to misidentify. If `curl` itself ever starts failing too,
+that would indicate a real block/change, worth revisiting then.
 
 ## Booking links (for notifications)
 
