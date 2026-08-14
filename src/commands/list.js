@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { SITES } from '../adapters/sites.js';
 import { getUserWatches } from '../db.js';
+import { formatTimeOfDay } from '../time.js';
 
 export const data = new SlashCommandBuilder()
   .setName('list')
@@ -15,7 +16,10 @@ export async function execute(interaction) {
 
   const lines = watches.map((w) => {
     const siteLabel = w.site === 'all' ? 'Vancouver & Burnaby' : SITES[w.site].label;
-    const window = [w.time_min != null && `after ${w.time_min}:00`, w.time_max != null && `before ${w.time_max + 1}:00`]
+    const window = [
+      w.time_min != null && `after ${formatTimeOfDay(w.time_min)}`,
+      w.time_max != null && `before ${formatTimeOfDay(w.time_max + 1)}`,
+    ]
       .filter(Boolean)
       .join(', ');
     const dateRange = w.date_end ? `${w.date} through ${w.date_end}` : w.date;

@@ -10,6 +10,24 @@ function slotKey(siteKey, slot) {
   return `${siteKey}:${slot.courseId}:${slot.courseTimeId ?? slot.teeSheetId}`;
 }
 
+// The CPS API's teeOffTimeMin/Max filter is hour-granularity only, but watches
+// store exact minutes (e.g. "before 6:50pm"). Query a broadened hour window
+// server-side, then filter to the exact minute bound ourselves below.
+function hourBounds(timeMinMinutes, timeMaxMinutes) {
+  return {
+    hourMin: timeMinMinutes != null ? Math.floor(timeMinMinutes / 60) : undefined,
+    hourMax: timeMaxMinutes != null ? Math.floor(timeMaxMinutes / 60) : undefined,
+  };
+}
+
+function inTimeWindow(slot, timeMinMinutes, timeMaxMinutes) {
+  const start = new Date(slot.startTime);
+  const minutes = start.getHours() * 60 + start.getMinutes();
+  if (timeMinMinutes != null && minutes < timeMinMinutes) return false;
+  if (timeMaxMinutes != null && minutes > timeMaxMinutes) return false;
+  return true;
+}
+
 function formatSlot(site, slot, showDate) {
   const start = new Date(slot.startTime);
   const dateStr = showDate ? start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' ' : '';
@@ -31,6 +49,7 @@ export async function pollOnce(client) {
   for (const watch of watches) {
     const siteKeys = watch.site === 'all' ? Object.keys(SITES) : [watch.site];
     const dateKeys = watch.date_end ? dateKeyRange(watch.date, watch.date_end) : [watch.date];
+    const { hourMin, hourMax } = hourBounds(watch.time_min, watch.time_max);
     const newSlots = []; // { site, slot }
 
     for (const siteKey of siteKeys) {
@@ -41,10 +60,11 @@ export async function pollOnce(client) {
         try {
           const slots = await searchTeeTimes(siteKey, {
             date: dateKeyToDate(dateKey),
-            teeOffTimeMin: watch.time_min ?? undefined,
-            teeOffTimeMax: watch.time_max ?? undefined,
+            teeOffTimeMin: hourMin,
+            teeOffTimeMax: hourMax,
           });
           for (const slot of slots) {
+            if (!inTimeWindow(slot, watch.time_min, watch.time_max)) continue;
             const key = slotKey(siteKey, slot);
             if (!hasSeenSlot(watch.id, key)) newSlots.push({ site, slot });
             markSlotSeen(watch.id, key);

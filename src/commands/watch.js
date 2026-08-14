@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { SITES } from '../adapters/sites.js';
 import { createWatch } from '../db.js';
-import { parseDateInput, parseHour } from '../time.js';
+import { parseDateInput, parseTimeOfDay } from '../time.js';
 
 export const data = new SlashCommandBuilder()
   .setName('watch')
@@ -43,12 +43,10 @@ export async function execute(interaction) {
         return;
       }
     }
-    if (afterInput) timeMin = parseHour(afterInput);
-    if (beforeInput) {
-      const hour = parseHour(beforeInput);
-      // "before 7pm" should include the 6pm-7pm slot, so max is inclusive of that hour.
-      timeMax = hour === 0 ? 23 : hour - 1;
-    }
+    // time_min/time_max are stored as minutes-since-midnight for exact precision
+    // (e.g. "before 6:50pm" must not round up to "before 7pm").
+    if (afterInput) timeMin = parseTimeOfDay(afterInput);
+    if (beforeInput) timeMax = parseTimeOfDay(beforeInput) - 1;
   } catch (err) {
     await interaction.reply({ content: err.message, ephemeral: true });
     return;
