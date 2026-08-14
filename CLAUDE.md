@@ -154,8 +154,12 @@ Response: `{ transactionId, isSuccess, content: [ {...slot} ] }`. Each slot in
 
 - `startTime` — ISO datetime of the tee time
 - `courseId`, `courseName`, `siteId`
-- `teeSheetId`, `courseTimeId` — use as the stable identity for diffing "have we
-  already notified about this slot"
+- `teeSheetId` — unique per specific time slot, use this (not `courseTimeId`)
+  as the stable identity for diffing "have we already notified about this
+  slot". `courseTimeId` looks similar but is constant for every time slot at
+  a given course on a given day (confirmed against live data) — using it as
+  the identity collapses every distinct time at that course into one, so only
+  the first ever surfaces as "new".
 - `participants`, `availableParticipantNo` — how many spots open
 - `shItemPrices[0].displayPrice` — price per player
 - `holes`

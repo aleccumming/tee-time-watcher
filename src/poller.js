@@ -6,8 +6,14 @@ import { dateKeyToDate, dateKeyRange } from './time.js';
 // courseId alone can collide across sites (e.g. courseId 1 exists at both
 // Vancouver's Langara and Burnaby Mountain), so a multi-site watch needs the
 // site baked into the identity to avoid treating them as the same slot.
+//
+// teeSheetId (not courseTimeId!) is what's actually unique per specific time
+// slot — courseTimeId turns out to be constant for every time at a given
+// course on a given day (confirmed against live data), so using it collapsed
+// every distinct time at the same course into one identity and made all but
+// the first look "already seen".
 function slotKey(siteKey, slot) {
-  return `${siteKey}:${slot.courseId}:${slot.courseTimeId ?? slot.teeSheetId}`;
+  return `${siteKey}:${slot.courseId}:${slot.teeSheetId ?? slot.courseTimeId}`;
 }
 
 // The CPS API's teeOffTimeMin/Max filter is hour-granularity only, but watches
